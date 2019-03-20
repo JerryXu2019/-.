@@ -1,0 +1,205 @@
+日時の取得
+Dateから特定の時間単位を取得
+// 現在日時
+let date = Date()
+
+// 年月日時分秒をそれぞれ個別に取得
+let calendar = Calendar.current
+let year = calendar.component(.year, from: date)
+let month = calendar.component(.month, from: date)
+let day = calendar.component(.day, from: date)
+let hour = calendar.component(.hour, from: date)
+let minute = calendar.component(.minute, from: date)
+let second = calendar.component(.second, from: date)
+print(year, month, day, hour, minute, second)
+
+// 年月日時分秒をそれぞれまとめて取得
+let comps = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
+print(comps.year!, comps.month!, comps.day!, comps.hour!, comps.minute!, comps.second!)
+
+日時の作成
+日時を任意に作成
+// 文字列から作成
+var fmt = DateFormatter()
+fmt.dateFormat = "yyyy-MM-dd"
+let dateFromFmt1 = fmt.date(from: "2015-10-7")
+fmt.dateFormat = "yyyy-MM-dd HH:mm:ss"
+let dateFromFmt2 = fmt.date(from: "2017-5-12 23:15:46")
+
+// コンポーネントから作成
+let calendar = Calendar.current
+let dateFromComps1 = calendar.date(from: DateComponents(year: 2015, month: 10, day: 7))
+let dateFromComps2 = calendar.date(from: DateComponents(year: 2017, month: 5, day: 12, hour: 23, minute: 15, second: 46))
+
+
+日時の操作
+ある日時を基準として特定の日時を取得
+
+明日・昨日
+var calendar = Calendar.current
+let date = Date()
+
+// 明日
+let tomorrow = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: date))
+// 昨日
+let yesterday = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: date))
+◯日後、△日前とする場合はvalueの値を変える
+◯年後、△ヶ月後とする場合はbyAddingの値を.yearや.monthに変える
+単純に24時間後とかならstartOfDay(for:)は不要
+
+月初・月末
+let calendar = Calendar.current
+let date = Date()
+
+// 月初
+var comps = calendar.dateComponents([.year, .month], from: date)
+let firstday = calendar.date(from: comps)
+
+// 月末
+var add = DateComponents(month: 1, day: -1)
+let lastday = calendar.date(byAdding: add, to: firstday!)
+月末は『月初の翌月の１日前』というやり方
+
+◯日△時間後・◯時間△分前
+var calendar = Calendar.current
+// Mar 1, 2017, 1:00 AM
+let date = calendar.date(from: DateComponents(year: 2017, month: 3, day: 1, hour: 1))!
+
+// 3日と5時間後
+var comps = DateComponents(day: 3, hour: 5)
+calendar.date(byAdding: comps, to: date) // Mar 4, 2017, 6:00 AM
+
+// 1時間10分前
+comps = DateComponents(hour: -1, minute: -10)
+calendar.date(byAdding: comps, to: date) // Feb 28, 2017, 11:50 PM
+
+// 時間を1時間前に、分を10分前に設定
+calendar.date(byAdding: comps, to: date, wrappingComponents: true) // Mar 1, 2017, 12:50 AM
+wrappingComponentsを設定すると、他の時間単位に影響を与えない
+
+月や曜日の表示
+ある月をDecember、ある曜日をSundayというように文字列で表示するためにあらかじめ配列が用意されている
+// ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+Calendar.current.standaloneMonthSymbols
+
+// ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+Calendar.current.shortStandaloneMonthSymbols
+
+// ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+Calendar.current.standaloneWeekdaySymbols
+
+// ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+Calendar.current.shortStandaloneWeekdaySymbols
+プロパティ名からstandaloneを除いたもの(例えばCalendar.current.monthSymbols)もある 
+standalone有りはカレンダーなど単独で表示する場合に使う
+無しは文の一部として表示する場合に使う
+
+ロケールに合わせた表示
+var calendar = Calendar.current
+let date = Date()
+
+let month = calendar.component(.month, from: date)
+let weekday = calendar.component(.weekday, from: date)
+
+
+// 確認
+print(calendar.standaloneMonthSymbols[month - 1]) // January
+print(calendar.standaloneWeekdaySymbols[weekday - 1]) // Saturday
+
+calendar.locale = Locale(identifier: "ja_JP")
+print(calendar.standaloneMonthSymbols[month - 1]) // 1月
+print(calendar.standaloneWeekdaySymbols[weekday - 1]) // 土曜日
+
+数
+
+月の日数・週数
+var calendar = Calendar.current
+let date = calendar.date(from: DateComponents(year: 2017, month: 2))!
+// 日数
+calendar.range(of: .day, in: .month, for: date)?.count // 28
+
+// 週の数 (日曜始まり)
+calendar.range(of: .weekOfMonth, in: .month, for: date)?.count // 5
+
+// 週の数 (水曜始まり)
+calendar.firstWeekday = 4
+calendar.range(of: .weekOfMonth, in: .month, for: date)?.count // 4
+週の数は開始を何曜日と定義しているかによって変わる点に注意
+
+経過時間
+基準日時からの経過時間・残り時間
+let calendar = Calendar.current
+let dateFrom = calendar.date(from: DateComponents(year: 2010, month: 6, day: 10))!
+let dateTo = calendar.date(from: DateComponents(year: 2011, month: 7, day: 11))!
+
+var comps: DateComponents
+
+// あと何秒か
+comps = calendar.dateComponents([.second], from: dateFrom, to: dateTo)
+print(comps.second!) // 34214400
+
+// あと何日か
+comps = calendar.dateComponents([.day], from: dateFrom, to: dateTo)
+print(comps.day!) // 396
+
+// あと何ヶ月と何日か
+comps = calendar.dateComponents([.month, .day], from: dateFrom, to: dateTo)
+print(comps.month!, comps.day!) // 13 1
+
+比較
+特定の日付や時間単位を使った比較
+var fmt = DateFormatter()
+fmt.dateFormat = "yyyy-MM-dd HH:mm:ss"
+
+let date0 = fmt.date(from: "2017-01-11 12:0:0")!
+let date1 = fmt.date(from: "2017-01-11 12:1:0")! // date0とは分が異なる
+let date2 = fmt.date(from: "2017-01-12 12:0:0")! // date0とは日が異なる
+
+// 日時が一致するか
+print(date0 == date1) // false
+print(date0 == date2) // false
+
+let calendar = Calendar.current
+// 日付(年月日)が一致するか
+print(calendar.isDate(date0, inSameDayAs: date1)) // true
+print(calendar.isDate(date0, inSameDayAs: date2)) // false
+
+// 年が一致するか
+print(calendar.compare(date0, to: date1, toGranularity: .year) == .orderedSame) // true
+print(calendar.compare(date0, to: date2, toGranularity: .year) == .orderedSame) // true
+
+// 年月日時が一致するか
+print(calendar.compare(date0, to: date1, toGranularity: .hour) == .orderedSame) // true
+print(calendar.compare(date0, to: date2, toGranularity: .hour) == .orderedSame) // false
+
+// 年月日時分が一致するか
+print(calendar.compare(date0, to: date1, toGranularity: .minute) == .orderedSame) // false
+print(calendar.compare(date0, to: date2, toGranularity: .minute) == .orderedSame) // false
+
+
+// 年月と時が一致するか
+let date0Comps = calendar.dateComponents([.year, .month, .hour], from: date0)
+print(calendar.date(date1, matchesComponents: date0Comps)) // true
+print(calendar.date(date2, matchesComponents: date0Comps)) // true
+
+
+検索
+特定の条件を満たす日時を取得
+let calendar = Calendar.current
+let date = calendar.date(from: DateComponents(year: 2017))! // Jan 1, 2017, 12:00 AM
+var comps: DateComponents
+
+
+// 次の金曜日
+calendar.date(bySetting: .weekday, value: 6, of: date) // Jan 6, 2017, 12:00 AM
+
+// 前の金曜日
+comps = DateComponents(weekday: 6)
+calendar.nextDate(after: date, matching: comps, matchingPolicy: .nextTime, direction: .backward) // Dec 30, 2016, 12:00 AM
+
+// 次の2月29日
+comps = DateComponents(month: 2, day: 29)
+calendar.nextDate(after: date, matching: comps, matchingPolicy: .strict) // Feb 29, 2020, 12:00 AM
+
+// 前の2月29日
+calendar.nextDate(after: date, matching: comps, matchingPolicy: .strict, direction: .backward) // Feb 29, 2016, 12:00 AM
