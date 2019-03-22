@@ -4,6 +4,7 @@ Dateから特定の時間単位を取得
 let date = Date()
 
 // 年月日時分秒をそれぞれ個別に取得
+==================
 let calendar = Calendar.current
 let year = calendar.component(.year, from: date)
 let month = calendar.component(.month, from: date)
